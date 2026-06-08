@@ -1,0 +1,154 @@
+[
+  {
+    "id": "spicy-beef-patty",
+    "category": "Patties",
+    "name": "Spicy Beef Patty",
+    "price": 3.5,
+    "description": "Flaky golden crust filled with seasoned spicy beef.",
+    "enabled": true
+  },
+  {
+    "id": "beef-patty",
+    "category": "Patties",
+    "name": "Beef Patty",
+    "price": 3.25,
+    "description": "Classic beef patty with a warm, savory filling.",
+    "enabled": true
+  },
+  {
+    "id": "curry-chicken-patty",
+    "category": "Patties",
+    "name": "Curry Chicken Patty",
+    "price": 3.75,
+    "description": "Tender curry chicken wrapped in a buttery crust.",
+    "enabled": true
+  },
+  {
+    "id": "jerk-chicken-patty",
+    "category": "Patties",
+    "name": "Jerk Chicken Patty",
+    "price": 3.75,
+    "description": "Jerk-spiced chicken with bold island flavor.",
+    "enabled": true
+  },
+  {
+    "id": "vegetable-patty",
+    "category": "Patties",
+    "name": "Vegetable Patty",
+    "price": 3,
+    "description": "Seasoned vegetables baked inside a crisp patty shell.",
+    "enabled": true
+  },
+  {
+    "id": "quarter-chicken",
+    "category": "Chicken Meals",
+    "name": "Quarter Chicken",
+    "price": 8.95,
+    "description": "Juicy grilled quarter chicken served hot and fresh.",
+    "enabled": true
+  },
+  {
+    "id": "half-chicken",
+    "category": "Chicken Meals",
+    "name": "Half Chicken",
+    "price": 13.95,
+    "description": "A hearty half chicken with signature seasoning.",
+    "enabled": true
+  },
+  {
+    "id": "whole-chicken",
+    "category": "Chicken Meals",
+    "name": "Whole Chicken",
+    "price": 24.95,
+    "description": "Whole grilled chicken for sharing with the crew.",
+    "enabled": true
+  },
+  {
+    "id": "beef-shawarma",
+    "category": "Shawarma",
+    "name": "Beef Shawarma",
+    "price": 10.5,
+    "description": "Sliced beef, crisp vegetables, and creamy sauce in a warm wrap.",
+    "enabled": true
+  },
+  {
+    "id": "chicken-shawarma",
+    "category": "Shawarma",
+    "name": "Chicken Shawarma",
+    "price": 9.95,
+    "description": "Seasoned chicken shawarma wrapped with fresh toppings.",
+    "enabled": true
+  },
+  {
+    "id": "falafel-wrap",
+    "category": "Wraps",
+    "name": "Falafel Wrap",
+    "price": 8.95,
+    "description": "Crispy falafel, vegetables, and sauce rolled to order.",
+    "enabled": true
+  },
+  {
+    "id": "falafel-plate",
+    "category": "Wraps",
+    "name": "Falafel Plate",
+    "price": 11.5,
+    "description": "Falafel served with fresh sides and house sauce.",
+    "enabled": true
+  },
+  {
+    "id": "big-bite-burger",
+    "category": "Burgers",
+    "name": "Big Bite Burger",
+    "price": 9.95,
+    "description": "Signature burger stacked with cheese, lettuce, tomato, and sauce.",
+    "enabled": true
+  },
+  {
+    "id": "grill-chicken-burger",
+    "category": "Burgers",
+    "name": "Grill Chicken Burger",
+    "price": 9.5,
+    "description": "Grilled chicken breast with fresh toppings on a toasted bun.",
+    "enabled": true
+  },
+  {
+    "id": "chicken-quesadilla",
+    "category": "Quesadillas",
+    "name": "Chicken Quesadilla",
+    "price": 10.25,
+    "description": "Chicken and melted cheese folded in a grilled tortilla.",
+    "enabled": true
+  },
+  {
+    "id": "steak-quesadilla",
+    "category": "Quesadillas",
+    "name": "Steak Quesadilla",
+    "price": 11.25,
+    "description": "Tender steak, cheese, and peppers grilled until crisp.",
+    "enabled": true
+  },
+  {
+    "id": "vegetarian-quesadilla",
+    "category": "Quesadillas",
+    "name": "Vegetarian Quesadilla",
+    "price": 9.25,
+    "description": "Loaded vegetables and cheese in a toasted tortilla.",
+    "enabled": true
+  },
+  {
+    "id": "chicken-salad",
+    "category": "Salads",
+    "name": "Chicken Salad",
+    "price": 10.95,
+    "description": "Fresh greens topped with grilled chicken and house dressing.",
+    "enabled": true
+  },
+  {
+    "id": "steak-salad",
+    "category": "Salads",
+    "name": "Steak Salad",
+    "price": 12.25,
+    "description": "Steak over crisp greens with vegetables and dressing.",
+    "enabled": true
+  }
+]
