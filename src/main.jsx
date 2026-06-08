@@ -15,10 +15,42 @@ import {
 } from 'lucide-react';
 import './styles.css';
 import logoUrl from '../images/logo.jpg';
+import sampleMenu from '../server/data/menu.json';
 
 const categories = ['Patties', 'Chicken Meals', 'Shawarma', 'Burgers', 'Quesadillas', 'Salads', 'Wraps'];
 const statuses = ['New Order', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Completed', 'Cancelled'];
 const money = (value) => `$${Number(value || 0).toFixed(2)}`;
+const demoMenuKey = 'bigbite-demo-menu';
+const demoOrdersKey = 'bigbite-demo-orders';
+
+async function apiJson(path, options) {
+  const res = await fetch(path, options);
+  if (!res.ok) throw new Error(`API unavailable: ${path}`);
+  return res.json();
+}
+
+function loadDemoMenu() {
+  const saved = localStorage.getItem(demoMenuKey);
+  return saved ? JSON.parse(saved) : sampleMenu;
+}
+
+function saveDemoMenu(menu) {
+  localStorage.setItem(demoMenuKey, JSON.stringify(menu));
+}
+
+function loadDemoOrders() {
+  const saved = localStorage.getItem(demoOrdersKey);
+  return saved ? JSON.parse(saved) : [];
+}
+
+function saveDemoOrders(orders) {
+  localStorage.setItem(demoOrdersKey, JSON.stringify(orders));
+}
+
+function demoOrderNumber() {
+  const stamp = new Date().toISOString().slice(2, 10).replaceAll('-', '');
+  return `BB-${stamp}-${Math.floor(1000 + Math.random() * 9000)}`;
+}
 
 function Header({ page, setPage, cartCount, openCart, isAdmin, logout }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -383,22 +415,18 @@ function StatusBadge({ status }) {
   return <span className={`rounded-full px-3 py-1 text-xs font-black ${tone}`}>{status}</span>;
 }
 
-function MenuManagement({ menu, refreshMenu }) {
+function MenuManagement({ menu, saveMenuItem, removeMenuItem }) {
   const empty = { category: 'Patties', name: '', price: '', description: '', enabled: true };
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState(null);
   async function save(event) {
     event.preventDefault();
-    const url = editingId ? `/api/admin/menu/${editingId}` : '/api/admin/menu';
-    const method = editingId ? 'PUT' : 'POST';
-    await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+    await saveMenuItem(editingId, form);
     setForm(empty);
     setEditingId(null);
-    refreshMenu();
   }
   async function remove(id) {
-    await fetch(`/api/admin/menu/${id}`, { method: 'DELETE' });
-    refreshMenu();
+    await removeMenuItem(id);
   }
   function edit(item) {
     setEditingId(item.id);
@@ -450,13 +478,23 @@ function App() {
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
 
   async function refreshMenu() {
-    const [publicMenu, allMenu] = await Promise.all([fetch('/api/menu').then((res) => res.json()), fetch('/api/admin/menu').then((res) => res.json())]);
-    setMenu(publicMenu);
-    setAdminMenu(allMenu);
+    try {
+      const [publicMenu, allMenu] = await Promise.all([apiJson('/api/menu'), apiJson('/api/admin/menu')]);
+      setMenu(publicMenu);
+      setAdminMenu(allMenu);
+    } catch {
+      const allMenu = loadDemoMenu();
+      setMenu(allMenu.filter((item) => item.enabled !== false));
+      setAdminMenu(allMenu);
+    }
   }
 
   async function refreshOrders() {
-    setOrders(await fetch('/api/admin/orders').then((res) => res.json()));
+    try {
+      setOrders(await apiJson('/api/admin/orders'));
+    } catch {
+      setOrders(loadDemoOrders());
+    }
   }
 
   useEffect(() => { refreshMenu(); }, []);
@@ -476,7 +514,38 @@ function App() {
   }
 
   async function createOrder(payload) {
-    const order = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).then((res) => res.json());
+    let order;
+    try {
+      order = await apiJson('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    } catch {
+      const menuItems = loadDemoMenu();
+      const items = payload.items.map((cartItem) => {
+        const menuItem = menuItems.find((item) => item.id === cartItem.id);
+        return {
+          id: cartItem.id,
+          name: menuItem?.name || cartItem.name,
+          price: Number(menuItem?.price || cartItem.price || 0),
+          quantity: Number(cartItem.quantity || 1)
+        };
+      });
+      const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      order = {
+        id: `order-${Date.now()}`,
+        orderNumber: demoOrderNumber(),
+        customerName: payload.customerName,
+        phone: payload.phone,
+        pickupTime: payload.pickupTime,
+        notes: payload.notes || '',
+        items,
+        subtotal: total,
+        total,
+        status: 'New Order',
+        createdAt: new Date().toISOString()
+      };
+      const nextOrders = [order, ...loadDemoOrders()];
+      saveDemoOrders(nextOrders);
+      setOrders(nextOrders);
+    }
     setCart([]);
     setSuccessOrder(order);
     setPage('success');
@@ -484,18 +553,60 @@ function App() {
   }
 
   async function login(form) {
-    const res = await fetch('/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
-    if (!res.ok) return false;
-    const data = await res.json();
-    localStorage.setItem('bigbite-token', data.token);
-    setToken(data.token);
-    setPage('admin-dashboard');
-    return true;
+    try {
+      const data = await apiJson('/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      localStorage.setItem('bigbite-token', data.token);
+      setToken(data.token);
+      setPage('admin-dashboard');
+      return true;
+    } catch {
+      if (form.username !== 'owner' || form.password !== 'bigbite123') return false;
+      localStorage.setItem('bigbite-token', 'demo-owner-token');
+      setToken('demo-owner-token');
+      setPage('admin-dashboard');
+      return true;
+    }
   }
 
   async function changeStatus(id, status) {
-    await fetch(`/api/admin/orders/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+    try {
+      await apiJson(`/api/admin/orders/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+    } catch {
+      const nextOrders = loadDemoOrders().map((order) => order.id === id ? { ...order, status } : order);
+      saveDemoOrders(nextOrders);
+      setOrders(nextOrders);
+      return;
+    }
     refreshOrders();
+  }
+
+  async function saveMenuItem(editingId, form) {
+    try {
+      const url = editingId ? `/api/admin/menu/${editingId}` : '/api/admin/menu';
+      const method = editingId ? 'PUT' : 'POST';
+      await apiJson(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+    } catch {
+      const currentMenu = loadDemoMenu();
+      const nextItem = {
+        ...form,
+        id: editingId || `item-${Date.now()}`,
+        price: Number(form.price || 0)
+      };
+      const nextMenu = editingId
+        ? currentMenu.map((item) => item.id === editingId ? { ...item, ...nextItem } : item)
+        : [...currentMenu, nextItem];
+      saveDemoMenu(nextMenu);
+    }
+    refreshMenu();
+  }
+
+  async function removeMenuItem(id) {
+    try {
+      await apiJson(`/api/admin/menu/${id}`, { method: 'DELETE' });
+    } catch {
+      saveDemoMenu(loadDemoMenu().filter((item) => item.id !== id));
+    }
+    refreshMenu();
   }
 
   function logout() {
@@ -515,7 +626,7 @@ function App() {
       {page === 'success' && <SuccessPage order={successOrder} setPage={setPage} />}
       {page === 'admin-login' && <LoginPage login={login} />}
       {page === 'admin-dashboard' && requireAdmin(<AdminLayout page={page} setPage={setPage}><Dashboard orders={orders} filter={filter} setFilter={setFilter} changeStatus={changeStatus} /></AdminLayout>)}
-      {page === 'admin-menu' && requireAdmin(<AdminLayout page={page} setPage={setPage}><MenuManagement menu={adminMenu} refreshMenu={refreshMenu} /></AdminLayout>)}
+      {page === 'admin-menu' && requireAdmin(<AdminLayout page={page} setPage={setPage}><MenuManagement menu={adminMenu} saveMenuItem={saveMenuItem} removeMenuItem={removeMenuItem} /></AdminLayout>)}
       <button onClick={() => setCartOpen(true)} className="fixed bottom-4 left-4 right-4 z-30 flex items-center justify-center gap-2 rounded-full bg-bite-red px-5 py-4 font-black text-white shadow-bite sm:hidden">
         <ShoppingBag size={20} />
         Cart ({cartCount}) - {money(subtotal)}
